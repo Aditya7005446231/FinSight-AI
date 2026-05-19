@@ -1,0 +1,12 @@
+# Python environments
+venv/
+env/
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+
+# Ignore large datasets and models if they are too big for standard GitHub
+# data/*.csv
+# models/*.joblib
