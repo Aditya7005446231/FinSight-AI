@@ -1,0 +1,66 @@
+========================================================================
+                      FINSIGHT AI - BACKEND ARCHITECTURE
+========================================================================
+
+1. TECHNICAL STACK
+------------------------------------------------------------------------
+* FastAPI: High-performance Python web framework for building APIs.
+* Uvicorn: Lightning-fast ASGI web server implementation for Python.
+* Pydantic: Data validation and settings management using Python type hints.
+* Scikit-Learn: Machine Learning library used to load pre-trained ML models.
+* Joblib: Serialized model loader used to read .joblib model files.
+* Pandas: Data analysis tool used for filtering and processing the CSV dataset.
+* Numpy: Supporting library for numerical operations.
+
+2. PROJECT STRUCTURE & CONNECTIONS
+------------------------------------------------------------------------
+* app/main.py: App entry point. Sets up CORS middleware and mounts routers.
+* app/schemas.py: Declares Pydantic data schemas for validation and serialization.
+* app/ml_service.py: Contains ModelStore class which handles data filtering,
+  ML inference, and financial calculations.
+* app/routers/recommend.py: Router exposing the POST /funds endpoint.
+* app/routers/plan.py: Router exposing the POST /plan endpoint.
+* data/fastapi_funds_dataset.csv: Main CSV dataset of mutual funds.
+* models/: Directory containing pre-trained Scikit-Learn estimators:
+  - returns_3yr_predictor.joblib (Random Forest Regressor)
+  - fund_classifier.joblib (Random Forest Classifier)
+  - fund_label_encoder.joblib (Label encoder for fund quality classes)
+
+3. API LOGIC FLOW
+------------------------------------------------------------------------
+User Request (JSON) -> main.py -> routers/plan.py -> schemas.py (validation)
+-> ml_service.py (process) -> models & data -> response serialized -> Client
+
+4. CORE CORE ALGORITHMS & LOGIC
+------------------------------------------------------------------------
+A. Dynamic Asset Allocation:
+   Maps user's selected Risk Profile to an asset class split:
+   - Conservative: 70% Debt, 30% Hybrid, 0% Equity
+   - Balanced:     30% Debt, 40% Hybrid, 30% Equity
+   - Growth:       10% Debt, 20% Hybrid, 70% Equity
+   - Aggressive:   0% Debt, 10% Hybrid, 90% Equity
+
+B. Time-Horizon Safety Overrides:
+   - If duration is <= 2 years: Forces allocation to 80% Debt and 20% Hybrid,
+     completely eliminating Equity to prevent loss of short-term capital.
+   - If duration is 3-4 years: Caps Equity at 40%, diverting excess risk
+     into Hybrid funds.
+
+C. ML-Driven Fund Selection:
+   - Filters CSV dataset for funds matching targeted categories.
+   - Filters out funds where the user's allocated category budget is less than
+     the fund's minimum investment limit (min_sip or min_lumpsum).
+   - Runs Random Forest Regressor to predict annualized 3-year returns.
+   - Runs Random Forest Classifier to assign a Quality Tag (e.g. Good, Average).
+   - Selects the top 2 funds per category (sorted by predicted returns) to
+     diversify the portfolio, allocating category capital equally.
+
+D. Future Value Projections:
+   - Calculates the portfolio's weighted average annualized return rate (r).
+   - Projects final wealth based on the user's selected investment mode:
+     * Lumpsum (One-Time Compound Interest):
+       FV = P * (1 + r) ^ n
+     * SIP (Future Value of a Monthly Annuity Due):
+       r_monthly = r / 12
+       months = n * 12
+       FV = P_monthly * [((1 + r_monthly)^months - 1) / r_monthly] * (1 + r_monthly)

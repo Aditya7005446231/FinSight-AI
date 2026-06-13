@@ -130,6 +130,146 @@ class ModelStore:
             }
         }
 
+    def generate_investment_plan(
+        self,
+        age: int,
+        financial_goal: str,
+        investment_mode: str,
+        amount: float,
+        duration_years: int,
+        risk_profile: str
+    ) -> dict:
+        # 1. Base Asset Allocation percentages
+        allocation_map = {
+            "Conservative": {"Debt": 0.70, "Hybrid": 0.30, "Equity": 0.00},
+            "Balanced":     {"Debt": 0.30, "Hybrid": 0.40, "Equity": 0.30},
+            "Growth":       {"Debt": 0.10, "Hybrid": 0.20, "Equity": 0.70},
+            "Aggressive":   {"Debt": 0.00, "Hybrid": 0.10, "Equity": 0.90}
+        }
+        
+        allocation = allocation_map.get(risk_profile, allocation_map["Balanced"]).copy()
+        
+        # 2. Safety override based on short durations (safety first)
+        if duration_years <= 2:
+            allocation = {"Debt": 0.80, "Hybrid": 0.20, "Equity": 0.00}
+        elif duration_years <= 4:
+            if allocation["Equity"] > 0.40:
+                diff = allocation["Equity"] - 0.40
+                allocation["Equity"] = 0.40
+                allocation["Hybrid"] += diff
+                
+        df = self.dataset.copy()
+        
+        # Ensure correct numeric types for regression features
+        for col in self.reg_features:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+        for col in self.clf_features:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+            
+        allocated_funds = []
+        asset_alloc_details = []
+        
+        active_categories = {cat: pct for cat, pct in allocation.items() if pct > 0}
+        
+        # 3. Filter and select funds per category
+        for category, percentage in active_categories.items():
+            allocated_amount = amount * percentage
+            asset_alloc_details.append({
+                "category": category,
+                "percentage": percentage * 100,
+                "allocated_amount": round(allocated_amount, 2)
+            })
+            
+            # Filter dataset by category
+            cat_mask = df['category'].str.lower() == category.lower()
+            cat_df = df[cat_mask].copy()
+            
+            if cat_df.empty:
+                continue
+                
+            # Filter out funds that don't satisfy the minimum investment criteria
+            if investment_mode == "SIP":
+                filtered_by_amt = cat_df[cat_df['min_sip'] <= allocated_amount]
+            else:
+                filtered_by_amt = cat_df[cat_df['min_lumpsum'] <= allocated_amount]
+                
+            if not filtered_by_amt.empty:
+                cat_df = filtered_by_amt.copy()
+                
+            # Predict 3yr returns using the regressor
+            cat_df['predicted_return'] = self.regressor.predict(cat_df[self.reg_features]).round(2)
+            
+            # Predict quality tag using classifier
+            clf_proba = self.classifier.predict_proba(cat_df[self.clf_features])
+            best_idx = clf_proba.argmax(axis=1)
+            cat_df['ai_quality_tag'] = self.label_encoder.classes_[best_idx]
+            
+            # Sort by predicted return and pick the top 2 funds to diversify
+            top_funds = cat_df.nlargest(2, 'predicted_return')
+            num_funds = len(top_funds)
+            
+            if num_funds > 0:
+                fund_weight = percentage / num_funds
+                fund_amount = allocated_amount / num_funds
+                
+                for _, row in top_funds.iterrows():
+                    allocated_funds.append({
+                        "scheme_name": row['scheme_name'],
+                        "category": category,
+                        "sub_category": str(row['sub_category']),
+                        "allocation_percentage": round(fund_weight * 100, 2),
+                        "allocated_amount": round(fund_amount, 2),
+                        "predicted_return": float(row['predicted_return']),
+                        "ai_quality_tag": str(row['ai_quality_tag']),
+                        "latest_1yr_return": float(row['returns_1yr'] or 0),
+                        "fund_size_cr": float(row['fund_size_cr'] or 0)
+                    })
+        
+        # 4. Projected Value Calculations
+        total_percentage = sum(f["allocation_percentage"] for f in allocated_funds)
+        if total_percentage > 0:
+            weighted_rate = sum(f["predicted_return"] * (f["allocation_percentage"] / 100) for f in allocated_funds)
+        else:
+            weighted_rate = 12.0
+            
+        r = weighted_rate / 100.0
+        
+        if investment_mode == "SIP":
+            r_monthly = r / 12.0
+            months = duration_years * 12
+            total_invested = amount * months
+            if r_monthly > 0:
+                projected_value = amount * (((1 + r_monthly) ** months - 1) / r_monthly) * (1 + r_monthly)
+            else:
+                projected_value = total_invested
+        else:
+            total_invested = amount
+            projected_value = amount * ((1 + r) ** duration_years)
+            
+        projected_value = round(projected_value, 2)
+        projected_gain = round(projected_value - total_invested, 2)
+        
+        summary_message = (
+            f"Based on your profile (Age {age}, Risk: {risk_profile}), we have created a "
+            f"{duration_years}-year personalized {investment_mode} investment plan for your {financial_goal.lower()} goal. "
+            f"Expected portfolio annualised return is {round(weighted_rate, 2)}%. "
+            f"Total investment of ₹{round(total_invested, 2):,} is projected to grow to ₹{round(projected_value, 2):,} "
+            f"with an estimated gain of ₹{round(projected_gain, 2):,}."
+        )
+        
+        return {
+            "status": "success",
+            "risk_profile": risk_profile,
+            "investment_mode": investment_mode,
+            "total_amount": amount,
+            "duration_years": duration_years,
+            "projected_value": projected_value,
+            "projected_gain": projected_gain,
+            "asset_allocation": asset_alloc_details,
+            "fund_distribution": allocated_funds,
+            "summary_message": summary_message
+        }
+
     # ── SEARCH ───────────────────────────────────────────────────────────
     def search_funds(self, query: str, top_n: int = 10) -> pd.DataFrame:
         mask = self.dataset['scheme_name'].str.contains(

@@ -24,9 +24,11 @@ def read_root():
     return {"message": "Welcome to FinSight AI API"}
 
 # from app.routers import health, classify, predict
-from app.routers import recommend
+from app.routers import recommend, plan
 
 # app.include_router(health.router)
 # app.include_router(classify.router)
 # app.include_router(predict.router)
 app.include_router(recommend.router)
+app.include_router(plan.router)
+
