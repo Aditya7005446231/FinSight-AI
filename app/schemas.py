@@ -82,6 +82,11 @@ class AllocatedFund(BaseModel):
     latest_1yr_return: float
     fund_size_cr: float
 
+class TimelineEntry(BaseModel):
+    year: int
+    cumulative_investment: float
+    projected_value: float
+
 class InvestmentPlanResponse(BaseModel):
     status: str
     risk_profile: str
@@ -92,4 +97,5 @@ class InvestmentPlanResponse(BaseModel):
     projected_gain: float
     asset_allocation: List[AssetAllocation]
     fund_distribution: List[AllocatedFund]
+    projection_timeline: List[TimelineEntry]
     summary_message: str

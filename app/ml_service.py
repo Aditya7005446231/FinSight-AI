@@ -234,6 +234,8 @@ class ModelStore:
             
         r = weighted_rate / 100.0
         
+        # Calculate yearly projection timeline for charts
+        projection_timeline = []
         if investment_mode == "SIP":
             r_monthly = r / 12.0
             months = duration_years * 12
@@ -242,9 +244,32 @@ class ModelStore:
                 projected_value = amount * (((1 + r_monthly) ** months - 1) / r_monthly) * (1 + r_monthly)
             else:
                 projected_value = total_invested
+                
+            # Populate year-by-year coordinates
+            for y in range(1, duration_years + 1):
+                y_months = y * 12
+                y_cum_invest = amount * y_months
+                if r_monthly > 0:
+                    y_proj_val = amount * (((1 + r_monthly) ** y_months - 1) / r_monthly) * (1 + r_monthly)
+                else:
+                    y_proj_val = y_cum_invest
+                projection_timeline.append({
+                    "year": y,
+                    "cumulative_investment": round(y_cum_invest, 2),
+                    "projected_value": round(y_proj_val, 2)
+                })
         else:
             total_invested = amount
             projected_value = amount * ((1 + r) ** duration_years)
+            
+            # Populate year-by-year coordinates
+            for y in range(1, duration_years + 1):
+                y_proj_val = amount * ((1 + r) ** y)
+                projection_timeline.append({
+                    "year": y,
+                    "cumulative_investment": round(amount, 2),
+                    "projected_value": round(y_proj_val, 2)
+                })
             
         projected_value = round(projected_value, 2)
         projected_gain = round(projected_value - total_invested, 2)
@@ -267,6 +292,7 @@ class ModelStore:
             "projected_gain": projected_gain,
             "asset_allocation": asset_alloc_details,
             "fund_distribution": allocated_funds,
+            "projection_timeline": projection_timeline,
             "summary_message": summary_message
         }
 
