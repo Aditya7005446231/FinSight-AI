@@ -1,6 +1,11 @@
 import joblib
 import pandas as pd
 import numpy as np
+import warnings
+from sklearn.exceptions import InconsistentVersionWarning
+
+# Suppress unpickling version warnings from scikit-learn
+warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 from pathlib import Path
 
 RISK_MAP ={

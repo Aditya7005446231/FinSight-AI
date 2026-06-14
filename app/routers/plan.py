@@ -16,7 +16,7 @@ def generate_plan(request: InvestmentPlanRequest):
         raise HTTPException(status_code=503, detail="Models are still loading, please try again.")
         
     try:
-        plan = model_store.generate_investment_plan(
+        plan_data = model_store.generate_investment_plan(
             age=request.age,
             financial_goal=request.financial_goal,
             investment_mode=request.investment_mode,
@@ -24,6 +24,6 @@ def generate_plan(request: InvestmentPlanRequest):
             duration_years=request.duration_years,
             risk_profile=request.risk_profile
         )
-        return plan
+        return plan_data
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate plan: {str(e)}")
+        raise HTTPException(500, f"Error generating plan: {str(e)}")
