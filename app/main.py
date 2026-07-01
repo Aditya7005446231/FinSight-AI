@@ -1,14 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# Initialize FastAPI app
 app = FastAPI(title="FinSight AI API")
 
-# Configure CORS
 origins = [
     "http://localhost:3000",
     "http://localhost:5173",
-    "*"  # Allows all origins
+    "*"  
 ]
 
 app.add_middleware(
@@ -23,12 +21,11 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to FinSight AI API"}
 
-# from app.routers import health, classify, predict
-from app.routers import recommend, plan
+from app.routers import recommend, plan, analyst, researcher
 
-# app.include_router(health.router)
-# app.include_router(classify.router)
-# app.include_router(predict.router)
 app.include_router(recommend.router)
 app.include_router(plan.router)
+app.include_router(analyst.router)
+app.include_router(researcher.router)
+
 
