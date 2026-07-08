@@ -7,6 +7,9 @@ __pycache__/
 # IDEs
 .vscode/
 
+# Secrets
+.env
+
 # Ignore large datasets and models if they are too big for standard GitHub
 # data/*.csv
 # models/*.joblib

@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,11 +24,13 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to FinSight AI API"}
 
-from app.routers import recommend, plan, analyst, researcher
+from app.routers import recommend, plan, analyst, researcher, market_report
 
 app.include_router(recommend.router)
 app.include_router(plan.router)
 app.include_router(analyst.router)
 app.include_router(researcher.router)
+app.include_router(market_report.router)
+
 
 

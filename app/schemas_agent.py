@@ -24,3 +24,13 @@ class ResearcherResponse(BaseModel):
     status: str
     answer: str                # LLM's text answer
     sources: List[dict]        # Raw matched records from DB, whatever shape they are
+
+# ---------- MARKET REPORT (Multi-Agent) ----------
+
+class MarketReportRequest(BaseModel):
+    topic: str = Field(..., min_length=3, description="Stock, sector, or market topic to research")
+
+
+class MarketReportResponse(BaseModel):
+    status: str
+    report: str    # Final markdown report from the Analyst agent
