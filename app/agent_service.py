@@ -19,7 +19,7 @@ class AgentService:
             raise ValueError("GROQ_API_KEY not found. Set it in your .env file.")
 
         self.client = Groq(api_key=api_key)
-        self.model = "llama3-8b-8192"
+        self.model = "llama-3.1-8b-instant"
 
 
     def analyze(self, context: dict, instructions: str = "") -> str:

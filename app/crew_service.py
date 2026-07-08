@@ -26,7 +26,7 @@ class CrewService:
 
         self.client = Groq(api_key=groq_key)
         self.serper_key = serper_key
-        self.model = "llama3-8b-8192"
+        self.model = "llama-3.1-8b-instant"
 
     # ── TOOL: Serper Google Search ────────────────────────────
 

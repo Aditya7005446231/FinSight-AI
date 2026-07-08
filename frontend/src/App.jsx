@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Wallet, Calendar, Award, AlertCircle, Loader2, Coins, Briefcase, ShieldCheck } from 'lucide-react';
+import { ResponsiveContainer, AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3 } from 'lucide-react';
 
 function App() {
-  // 1. STATE MANAGEMENT: Store form inputs
   const [formData, setFormData] = useState({
     age: 30,
     financial_goal: 'Wealth Creation',
@@ -13,28 +12,25 @@ function App() {
     risk_profile: 'Balanced',
   });
 
-  // Store backend response data
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState('planner');
 
-  // 2. CONNECT TO BACKEND: Fetch plan on submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch('http://127.0.0.1:8000/plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
       if (!response.ok) {
-        throw new Error('Server returned an error. Please try again.');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Server returned an error.');
       }
-
       const data = await response.json();
       setPlan(data);
     } catch (err) {
@@ -44,340 +40,396 @@ function App() {
     }
   };
 
-  // Color mapping for asset allocation categories
-  const ASSET_COLORS = {
-    Equity: '#6366f1', // Indigo
-    Hybrid: '#a855f7', // Purple
-    Debt: '#38bdf8'    // Sky Blue
-  };
+  const fmt = (val) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(val);
 
-  // Format currency in Indian Rupees style
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0
-    }).format(val);
-  };
+  const PIE_COLORS = { Equity: '#818cf8', Hybrid: '#60a5fa', Debt: '#34d399' };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans p-6 md:p-12">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="text-center md:text-left flex flex-col md:flex-row md:justify-between md:items-center border-b border-slate-900 pb-6">
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
+      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+
+        {/* ─── Header ─── */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800">
           <div>
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 via-indigo-400 to-blue-500 bg-clip-text text-transparent">
-              FinSight AI
-            </h1>
-            <p className="text-slate-400 mt-2">Personalized AI Mutual Fund Advisor & Portfolio Planner</p>
+            <h1 className="text-lg font-bold text-white tracking-tight">FinSight AI</h1>
+            <p className="text-xs text-neutral-500 mt-0.5">AI-Powered Portfolio Planner & Market Intelligence</p>
           </div>
-          <div className="mt-4 md:mt-0 flex items-center justify-center gap-2 px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-xl">
-            <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></span>
-            <span className="text-xs text-slate-300 font-medium">FastAPI Engine Online</span>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-5 gap-8 items-start">
-          
-          {/* LEFT COLUMN: Input Form (Takes up 2/5 columns on large screens) */}
-          <div className="lg:col-span-2 bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-md shadow-xl">
-            <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <Briefcase className="text-indigo-400 h-5 w-5" /> Investment Preferences
-            </h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Age Input */}
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className="text-sm font-semibold text-slate-300">Investor Age</label>
-                  <span className="text-sm font-bold text-indigo-400">{formData.age} years</span>
-                </div>
-                <input
-                  type="range" min="18" max="75"
-                  value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: parseInt(e.target.value) })}
-                  className="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Goal Dropdown */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Financial Goal</label>
-                <select
-                  value={formData.financial_goal}
-                  onChange={(e) => setFormData({ ...formData, financial_goal: e.target.value })}
-                  className="w-full bg-slate-850 border border-slate-800 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
-                >
-                  <option value="Wealth Creation">Wealth Creation</option>
-                  <option value="Retirement">Retirement</option>
-                  <option value="House Purchase">House Purchase</option>
-                  <option value="Education">Children's Education</option>
-                </select>
-              </div>
-
-              {/* Investment Mode (SIP vs Lumpsum) */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Investment Mode</label>
-                <div className="grid grid-cols-2 gap-4">
-                  {['SIP', 'Lumpsum'].map((mode) => (
-                    <button
-                      key={mode} type="button"
-                      onClick={() => setFormData({ ...formData, investment_mode: mode })}
-                      className={`py-2.5 px-4 rounded-lg font-semibold border text-center transition-all cursor-pointer ${
-                        formData.investment_mode === mode
-                          ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20'
-                          : 'bg-slate-850 border-slate-800 text-slate-400 hover:bg-slate-800'
-                      }`}
-                    >
-                      {mode === 'SIP' ? 'Monthly SIP' : 'One-Time Lumpsum'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Budget / Amount Input */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  {formData.investment_mode === 'SIP' ? 'Monthly Investment Amount' : 'Lumpsum Investment Amount'}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-slate-500 font-semibold">₹</span>
-                  <input
-                    type="number" min="500" step="500"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-slate-850 border border-slate-800 rounded-lg pl-8 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-
-              {/* Duration Years Slider */}
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label className="text-sm font-semibold text-slate-300">Investment Horizon</label>
-                  <span className="text-sm font-bold text-indigo-400">{formData.duration_years} Years</span>
-                </div>
-                <input
-                  type="range" min="1" max="15"
-                  value={formData.duration_years}
-                  onChange={(e) => setFormData({ ...formData, duration_years: parseInt(e.target.value) })}
-                  className="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer"
-                />
-              </div>
-
-              {/* Risk Profile Selector */}
-              <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">Risk Appetite</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['Conservative', 'Balanced', 'Growth', 'Aggressive'].map((risk) => (
-                    <button
-                      key={risk} type="button"
-                      onClick={() => setFormData({ ...formData, risk_profile: risk })}
-                      className={`py-2 px-2 text-xs rounded-lg font-bold border transition-all cursor-pointer ${
-                        formData.risk_profile === risk
-                          ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-600/20'
-                          : 'bg-slate-850 border-slate-800 text-slate-400 hover:bg-slate-800'
-                      }`}
-                    >
-                      {risk}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
+          <nav className="flex bg-neutral-900 border border-neutral-800 rounded-lg p-0.5">
+            {['planner', 'market'].map((page) => (
               <button
-                type="submit" disabled={loading}
-                className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-750 text-white py-3 rounded-lg font-bold shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                  currentPage === page
+                    ? 'bg-neutral-800 text-white shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-300'
+                }`}
               >
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Generate Plan'}
+                {page === 'planner' ? 'Portfolio Planner' : 'Market Research'}
               </button>
-            </form>
-          </div>
+            ))}
+          </nav>
+        </header>
 
-          {/* RIGHT COLUMN: Results Plan Dashboard (Takes up 3/5 columns) */}
-          <div className="lg:col-span-3 min-h-[500px] space-y-6">
-            
-            {/* Loading Placeholder */}
-            {loading && (
-              <div className="h-full min-h-[500px] flex flex-col items-center justify-center space-y-4 border border-dashed border-slate-800 rounded-2xl p-12 bg-slate-900/10">
-                <Loader2 className="animate-spin text-indigo-500 h-12 w-12" />
-                <p className="text-slate-400 font-medium">FinSight AI is processing historical CSV data and unpickling ML estimators...</p>
-              </div>
-            )}
+        {/* ─── Page Content ─── */}
+        {currentPage === 'planner' ? (
+          <div className="grid lg:grid-cols-12 gap-10">
 
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 flex items-center gap-3">
-                <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                <p className="text-sm font-medium">{error}</p>
-              </div>
-            )}
+            {/* ─── Sidebar: Controls ─── */}
+            <aside className="lg:col-span-4 bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
+              <h2 className="text-sm font-semibold text-neutral-300 mb-6">Investment Parameters</h2>
+              <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* Empty State */}
-            {!plan && !loading && !error && (
-              <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-center space-y-4 border border-dashed border-slate-800 rounded-2xl p-12 bg-slate-900/10">
-                <ShieldCheck className="text-indigo-500/30 h-16 w-16" />
-                <h3 className="text-lg font-bold text-slate-300">Generate Your Personalized Plan</h3>
-                <p className="text-slate-400 text-sm max-w-sm">Select your preferences on the left and submit. We'll run the random forest predictor to allocate assets and recommend top mutual funds.</p>
-              </div>
-            )}
-
-            {/* Result Render */}
-            {plan && !loading && !error && (
-              <div className="space-y-6 animate-fade-in">
-                
-                {/* 1. Projections Summary Card */}
-                <div className="bg-gradient-to-br from-slate-900 to-indigo-950/20 border border-indigo-900/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-4 opacity-5">
-                    <TrendingUp className="h-32 w-32" />
+                {/* Age */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-neutral-400 font-medium">Age</span>
+                    <span className="text-white font-semibold">{formData.age} yrs</span>
                   </div>
-                  
-                  <h3 className="text-xs uppercase tracking-wider text-indigo-400 font-extrabold mb-2">Portfolio Projections</h3>
-                  <div className="grid grid-cols-2 gap-6 my-4">
-                    <div>
-                      <p className="text-xs text-slate-400 font-medium">Projected Portfolio Value</p>
-                      <p className="text-2xl sm:text-3xl font-black text-emerald-400">{formatCurrency(plan.projected_value)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-400 font-medium">Estimated Wealth Gains</p>
-                      <p className="text-2xl sm:text-3xl font-black text-slate-200">{formatCurrency(plan.projected_gain)}</p>
-                    </div>
-                  </div>
-                  <div className="border-t border-slate-800/80 pt-4 mt-2">
-                    <p className="text-sm text-slate-300 leading-relaxed font-medium">{plan.summary_message}</p>
+                  <input type="range" min="18" max="75" value={formData.age}
+                    onChange={(e) => setFormData({ ...formData, age: +e.target.value })}
+                    className="w-full h-1.5 rounded-full bg-neutral-800 accent-indigo-400 cursor-pointer" />
+                </div>
+
+                {/* Goal */}
+                <div>
+                  <label className="text-xs text-neutral-400 font-medium block mb-1.5">Financial Goal</label>
+                  <select value={formData.financial_goal}
+                    onChange={(e) => setFormData({ ...formData, financial_goal: e.target.value })}
+                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-xs text-neutral-200 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    {['Wealth Creation', 'Retirement', 'House Purchase', 'Education'].map(g => (
+                      <option key={g} value={g}>{g}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Mode */}
+                <div>
+                  <label className="text-xs text-neutral-400 font-medium block mb-1.5">Investment Mode</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['SIP', 'Lumpsum'].map((mode) => (
+                      <button key={mode} type="button"
+                        onClick={() => setFormData({ ...formData, investment_mode: mode })}
+                        className={`py-2 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                          formData.investment_mode === mode
+                            ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+                            : 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-200'
+                        }`}>
+                        {mode === 'SIP' ? 'Monthly SIP' : 'Lumpsum'}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* 2. Visual Graphs Section */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  
-                  {/* Donut Chart (Asset Allocation) */}
-                  <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 flex flex-col">
-                    <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-                      <Coins className="text-purple-400 h-4 w-4" /> Asset Class Allocation
-                    </h3>
-                    <div className="h-52 flex items-center justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={plan.asset_allocation}
-                            dataKey="allocated_amount"
-                            nameKey="category"
-                            innerRadius={50}
-                            outerRadius={80}
-                            paddingAngle={4}
-                          >
-                            {plan.asset_allocation.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={ASSET_COLORS[entry.category] || '#ccc'} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            formatter={(value) => [formatCurrency(value), 'Allocated']}
-                            contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc' }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
+                {/* Amount */}
+                <div>
+                  <label className="text-xs text-neutral-400 font-medium block mb-1.5">
+                    {formData.investment_mode === 'SIP' ? 'Monthly Amount' : 'Investment Amount'}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-neutral-500 text-xs">₹</span>
+                    <input type="number" min="500" step="500" value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: +e.target.value || 0 })}
+                      className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-7 pr-3 py-2 text-xs text-neutral-200 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+                  </div>
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-neutral-400 font-medium">Duration</span>
+                    <span className="text-white font-semibold">{formData.duration_years} yrs</span>
+                  </div>
+                  <input type="range" min="1" max="15" value={formData.duration_years}
+                    onChange={(e) => setFormData({ ...formData, duration_years: +e.target.value })}
+                    className="w-full h-1.5 rounded-full bg-neutral-800 accent-indigo-400 cursor-pointer" />
+                </div>
+
+                {/* Risk */}
+                <div>
+                  <label className="text-xs text-neutral-400 font-medium block mb-1.5">Risk Profile</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Conservative', 'Balanced', 'Growth', 'Aggressive'].map((r) => (
+                      <button key={r} type="button"
+                        onClick={() => setFormData({ ...formData, risk_profile: r })}
+                        className={`py-2 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                          formData.risk_profile === r
+                            ? 'bg-indigo-500/15 border-indigo-500/40 text-indigo-300'
+                            : 'bg-neutral-800 border-neutral-700 text-neutral-400 hover:text-neutral-200'
+                        }`}>
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading}
+                  className="w-full bg-indigo-500 hover:bg-indigo-400 text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-lg shadow-indigo-500/20">
+                  {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Generate Portfolio'}
+                </button>
+              </form>
+            </aside>
+
+            {/* ─── Main: Results ─── */}
+            <main className="lg:col-span-8 space-y-8 min-h-[500px]">
+
+              {loading && (
+                <div className="h-96 flex flex-col items-center justify-center bg-neutral-900 border border-neutral-800 rounded-2xl space-y-3">
+                  <Loader2 className="animate-spin text-indigo-400 h-8 w-8" />
+                  <p className="text-neutral-400 text-xs">Running ML models...</p>
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 flex items-center gap-3">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <p className="text-xs">{error}</p>
+                </div>
+              )}
+
+              {!plan && !loading && !error && (
+                <div className="h-96 flex flex-col items-center justify-center bg-neutral-900/50 border border-neutral-800 border-dashed rounded-2xl space-y-3">
+                  <BarChart3 className="text-neutral-700 h-10 w-10" />
+                  <p className="text-neutral-500 text-xs font-medium">Configure parameters and generate a portfolio</p>
+                </div>
+              )}
+
+              {plan && !loading && (
+                <div className="space-y-8">
+
+                  {/* KPI Cards */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+                      <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-1">Projected Value</p>
+                      <p className="text-2xl font-bold text-white">{fmt(plan.projected_value)}</p>
                     </div>
-                    {/* Donut Legend */}
-                    <div className="flex justify-center gap-6 mt-2 text-xs flex-wrap">
-                      {plan.asset_allocation.map((asset) => (
-                        <div key={asset.category} className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: ASSET_COLORS[asset.category] }} />
-                          <span className="font-semibold text-slate-300">{asset.category}: {asset.percentage}%</span>
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+                      <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-1">Estimated Gain</p>
+                      <p className="text-2xl font-bold text-emerald-400">+{fmt(plan.projected_gain)}</p>
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="bg-neutral-900/60 border border-neutral-800 rounded-xl p-5">
+                    <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-2">Summary</p>
+                    <p className="text-xs text-neutral-300 leading-relaxed">{plan.summary_message}</p>
+                  </div>
+
+                  {/* Charts Row */}
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Donut */}
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+                      <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <Coins className="h-3.5 w-3.5" /> Asset Allocation
+                      </p>
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie data={plan.asset_allocation} dataKey="allocated_amount" nameKey="category"
+                              innerRadius={48} outerRadius={70} paddingAngle={4} strokeWidth={0}>
+                              {plan.asset_allocation.map((e, i) => (
+                                <Cell key={i} fill={PIE_COLORS[e.category] || '#666'} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(v) => [fmt(v), 'Allocated']}
+                              contentStyle={{ backgroundColor: '#1c1c1c', border: '1px solid #333', borderRadius: '8px', fontSize: '11px', color: '#e5e5e5' }} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="flex justify-center gap-4 text-[10px] mt-2">
+                        {plan.asset_allocation.map((a) => (
+                          <span key={a.category} className="flex items-center gap-1.5 text-neutral-400">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: PIE_COLORS[a.category] }} />
+                            {a.category} {a.percentage}%
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Growth Chart */}
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
+                      <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <TrendingUp className="h-3.5 w-3.5" /> Growth Projection
+                      </p>
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={plan.projection_timeline} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                            <defs>
+                              <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#818cf8" stopOpacity={0.3} />
+                                <stop offset="100%" stopColor="#818cf8" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <XAxis dataKey="year" stroke="#525252" fontSize={10} tickLine={false} axisLine={false} />
+                            <YAxis stroke="#525252" fontSize={9} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
+                            <Tooltip formatter={(v) => fmt(v)}
+                              contentStyle={{ backgroundColor: '#1c1c1c', border: '1px solid #333', borderRadius: '8px', fontSize: '11px', color: '#e5e5e5' }} />
+                            <Area type="monotone" dataKey="projected_value" stroke="#818cf8" fill="url(#grad)" strokeWidth={2} dot={false} />
+                            <Line type="monotone" dataKey="cumulative_investment" stroke="#525252" strokeWidth={1} strokeDasharray="4 4" dot={false} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fund List */}
+                  <div>
+                    <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <Award className="h-3.5 w-3.5" /> Recommended Funds
+                    </p>
+                    <div className="bg-neutral-900 border border-neutral-800 rounded-xl divide-y divide-neutral-800 overflow-hidden">
+                      {plan.fund_distribution.map((fund, i) => (
+                        <div key={i} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                          <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-white truncate">{fund.scheme_name}</span>
+                              <span className="shrink-0 text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md bg-neutral-800 text-neutral-400 border border-neutral-700">
+                                {fund.category}
+                              </span>
+                              <span className="shrink-0 text-[10px] text-neutral-500">{fund.ai_quality_tag}</span>
+                            </div>
+                            <p className="text-[10px] text-neutral-500">{fund.sub_category} · AUM ₹{fund.fund_size_cr.toLocaleString('en-IN')} Cr</p>
+                          </div>
+                          <div className="flex items-center gap-6 shrink-0 text-right">
+                            <div>
+                              <p className="text-[10px] text-neutral-500">Return</p>
+                              <p className="font-bold text-emerald-400">+{fund.predicted_return}%</p>
+                            </div>
+                            <div className="border-l border-neutral-800 pl-4">
+                              <p className="text-[10px] text-neutral-500">Allocation</p>
+                              <p className="font-semibold text-neutral-200">{fund.allocation_percentage}% · {fmt(fund.allocated_amount)}</p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Line Chart (Wealth Growth Timeline) */}
-                  <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-5 flex flex-col">
-                    <h3 className="text-sm font-bold text-slate-200 mb-4 flex items-center gap-2">
-                      <TrendingUp className="text-emerald-400 h-4 w-4" /> Wealth Growth Projection
-                    </h3>
-                    <div className="h-52">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={plan.projection_timeline} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                          <defs>
-                            <linearGradient id="colorProj" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
-                              <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <XAxis dataKey="year" stroke="#64748b" fontSize={11} label={{ value: 'Years', position: 'insideBottom', offset: -5, fill: '#64748b', fontSize: 11 }} />
-                          <YAxis stroke="#64748b" fontSize={10} tickFormatter={(val) => `₹${val / 1000}k`} />
-                          <Tooltip
-                            formatter={(value) => formatCurrency(value)}
-                            contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc' }}
-                          />
-                          <Legend verticalAlign="top" height={36} iconSize={8} iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-                          <Area name="Projected Value" type="monotone" dataKey="projected_value" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorProj)" />
-                          <Area name="Total Invested" type="monotone" dataKey="cumulative_investment" stroke="#6366f1" strokeWidth={1.5} fill="none" strokeDasharray="4 4" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
                 </div>
-
-                {/* 3. Recommended Mutual Funds List */}
-                <div className="space-y-4">
-                  <h3 className="text-base font-bold text-slate-200 flex items-center gap-2">
-                    <Award className="text-amber-400 h-4 w-4" /> Portfolio Mutual Funds Allocation
-                  </h3>
-                  
-                  <div className="grid gap-4">
-                    {plan.fund_distribution.map((fund, index) => (
-                      <div
-                        key={index}
-                        className="bg-slate-900/20 border border-slate-800/80 hover:border-indigo-900/30 transition-all rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-bold text-slate-100">{fund.scheme_name}</span>
-                            <span
-                              className="text-[9px] uppercase font-black px-2 py-0.5 rounded-full"
-                              style={{
-                                backgroundColor: `${ASSET_COLORS[fund.category]}15`,
-                                color: ASSET_COLORS[fund.category]
-                              }}
-                            >
-                              {fund.category}
-                            </span>
-                            <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full ${
-                              fund.ai_quality_tag === 'Good' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
-                            }`}>
-                              AI Rating: {fund.ai_quality_tag}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-500">{fund.sub_category} • AUM: ₹{fund.fund_size_cr.toLocaleString('en-IN')} Cr</p>
-                        </div>
-                        
-                        <div className="flex items-center gap-6 justify-between sm:justify-end">
-                          <div className="text-right">
-                            <p className="text-xs text-slate-500">Predicted Return</p>
-                            <p className="text-sm font-black text-indigo-400">+{fund.predicted_return}%</p>
-                          </div>
-                          <div className="text-right border-l border-slate-850 pl-4">
-                            <p className="text-xs text-slate-500">Allocation</p>
-                            <p className="text-sm font-bold text-slate-200">{fund.allocation_percentage}% ({formatCurrency(fund.allocated_amount)})</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            )}
-
+              )}
+            </main>
           </div>
 
-        </div>
-
+        ) : (
+          <MarketResearcher />
+        )}
       </div>
     </div>
   );
 }
+
+/* ─── Markdown Parser ─── */
+const md = (text) => {
+  if (!text) return '';
+  let h = text;
+  h = h.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>');
+  h = h.replace(/^### (.*$)/gim, '<h4 class="text-xs font-bold text-neutral-300 uppercase tracking-wider mt-5 mb-2">$1</h4>');
+  h = h.replace(/^## (.*$)/gim, '<h3 class="text-sm font-bold text-neutral-200 border-b border-neutral-800 pb-2 mt-6 mb-3">$1</h3>');
+  h = h.replace(/^# (.*$)/gim, '<h2 class="text-base font-bold text-white mt-8 mb-3">$1</h2>');
+  h = h.replace(/^\s*-\s*(.*$)/gim, '<li class="ml-4 list-disc text-neutral-400 my-1 text-xs leading-relaxed">$1</li>');
+  return h.split('\n').map(l => {
+    if (l.trim().startsWith('<')) return l;
+    return l.trim() ? `<p class="text-xs text-neutral-400 leading-relaxed my-2">${l}</p>` : '';
+  }).join('');
+};
+
+/* ─── Market Research Page ─── */
+const MarketResearcher = () => {
+  const [topic, setTopic] = useState('');
+  const [report, setReport] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [stage, setStage] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const run = async (t) => {
+    const q = t || topic;
+    if (!q || q.trim().length < 3) return;
+    setLoading(true); setError(null); setReport('');
+    setStage('Agent 1 → Searching Google via Serper API...');
+    const t1 = setTimeout(() => setStage('Agent 1 → Extracting financial data & news...'), 4000);
+    const t2 = setTimeout(() => setStage('Agent 2 → Performing analysis & writing report...'), 8000);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/market-report', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: q }),
+      });
+      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || 'Failed'); }
+      const data = await res.json();
+      setReport(data.report);
+    } catch (e) { setError(e.message); }
+    finally { clearTimeout(t1); clearTimeout(t2); setLoading(false); setStage(''); }
+  };
+
+  const chips = ["Reliance Industries", "Tata Motors", "Nifty 50 Index", "HDFC Bank"];
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-8">
+      {/* Search */}
+      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-5">
+        <div>
+          <h2 className="text-sm font-semibold text-neutral-200 flex items-center gap-2 mb-1">
+            <Sparkles className="text-indigo-400 h-4 w-4" /> AI Market Intelligence
+          </h2>
+          <p className="text-xs text-neutral-500">Two AI agents crawl the web, extract financial data, and generate an investment analysis report.</p>
+        </div>
+
+        <form onSubmit={(e) => { e.preventDefault(); run(); }} className="flex gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-2.5 text-neutral-500 h-4 w-4" />
+            <input type="text" placeholder="Enter a stock, fund, or market topic..."
+              value={topic} onChange={(e) => setTopic(e.target.value)}
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-10 pr-4 py-2.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-indigo-500" />
+          </div>
+          <button type="submit" disabled={loading || !topic.trim()}
+            className="bg-indigo-500 hover:bg-indigo-400 text-white font-semibold px-5 py-2.5 rounded-lg text-xs transition-all cursor-pointer disabled:opacity-50 shadow-lg shadow-indigo-500/20">
+            {loading ? <Loader2 className="animate-spin h-4 w-4" /> : 'Analyze'}
+          </button>
+        </form>
+
+        <div className="flex flex-wrap gap-2">
+          {chips.map(c => (
+            <button key={c} type="button" onClick={() => { setTopic(c); run(c); }} disabled={loading}
+              className="text-[10px] font-medium px-3 py-1.5 rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-all cursor-pointer disabled:opacity-50">
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-16 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-3">
+          <Loader2 className="animate-spin text-indigo-400 h-6 w-6" />
+          <p className="text-neutral-300 text-xs font-medium">{stage}</p>
+          <p className="text-[10px] text-neutral-600">Multi-agent pipeline running on Llama 3.1...</p>
+        </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 flex items-center gap-3">
+          <AlertCircle className="h-4 w-4 shrink-0" /><p className="text-xs">{error}</p>
+        </div>
+      )}
+
+      {/* Report */}
+      {report && !loading && (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-5">
+          <div className="flex justify-between items-center border-b border-neutral-800 pb-4">
+            <span className="flex items-center gap-2 text-xs font-semibold text-neutral-300">
+              <BookOpen className="h-4 w-4 text-indigo-400" /> Investment Analysis Report
+            </span>
+            <button onClick={() => { navigator.clipboard.writeText(report); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+              className="flex items-center gap-1.5 text-[10px] font-medium text-neutral-500 hover:text-white bg-neutral-800 border border-neutral-700 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
+              <Copy className="h-3 w-3" /> {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+          <div className="max-w-none" dangerouslySetInnerHTML={{ __html: md(report) }} />
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default App;
