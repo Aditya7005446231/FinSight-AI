@@ -7,6 +7,4 @@ numpy
 joblib
 groq
 python-dotenv
-crewai
-crewai-tools
-langchain-groq
+httpx
