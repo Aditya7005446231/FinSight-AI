@@ -546,59 +546,150 @@ const LandingPage = ({ onNavigate }) => {
   }, []);
 
   return (
-    <div className="relative min-h-[80vh] flex flex-col items-center justify-center overflow-hidden py-12 rounded-3xl border border-neutral-900 bg-neutral-950">
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-auto"
-      />
+    <div className="space-y-20 pb-16">
+      
+      {/* ─── Hero Canvas Banner ─── */}
+      <div className="relative min-h-[80vh] flex flex-col items-center justify-center overflow-hidden py-12 rounded-3xl border border-neutral-900 bg-neutral-950">
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full pointer-events-auto"
+        />
 
-      <div className="relative z-10 text-center max-w-2xl px-6 space-y-8 pointer-events-none">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/5 text-indigo-400 text-[10px] font-semibold tracking-wider uppercase animate-pulse">
-          <Sparkles className="h-3.5 w-3.5" /> Engine v1.0 Release
+        <div className="relative z-10 text-center max-w-2xl px-6 space-y-8 pointer-events-none">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/5 text-indigo-400 text-[10px] font-semibold tracking-wider uppercase animate-pulse">
+            <Sparkles className="h-3.5 w-3.5" /> Engine v1.0 Release
+          </div>
+
+          <div className="space-y-3">
+            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              Smart Portfolios.<br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 via-neutral-400 to-neutral-600">
+                Real-Time Market Research.
+              </span>
+            </h2>
+            <p className="text-sm text-neutral-500 font-light max-w-lg mx-auto leading-relaxed">
+              Build optimized, risk-aware investment portfolios and run real-time analyst reports on any stock or sector in seconds.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 pointer-events-auto">
+            <button
+              onClick={() => onNavigate('planner')}
+              className="w-full sm:w-auto bg-white hover:bg-neutral-200 text-neutral-950 font-bold px-8 py-3 rounded-xl text-xs shadow-lg transition-all cursor-pointer hover:scale-[1.02] flex items-center justify-center gap-2"
+            >
+              Build Portfolio
+            </button>
+            <button
+              onClick={() => onNavigate('market')}
+              className="w-full sm:w-auto bg-neutral-900 hover:bg-neutral-850 text-neutral-300 font-semibold px-8 py-3 rounded-xl text-xs border border-neutral-800 transition-all cursor-pointer flex items-center justify-center gap-2"
+            >
+              Research a Stock
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-3">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Smart Portfolios.<br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 via-neutral-400 to-neutral-600">
-              Real-Time Market Research.
-            </span>
-          </h2>
-          <p className="text-sm text-neutral-500 font-light max-w-lg mx-auto leading-relaxed">
-            Build optimized, risk-aware investment portfolios and run real-time analyst reports on any stock or sector in seconds.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 pointer-events-auto">
-          <button
-            onClick={() => onNavigate('planner')}
-            className="w-full sm:w-auto bg-white hover:bg-neutral-200 text-neutral-950 font-bold px-8 py-3 rounded-xl text-xs shadow-lg transition-all cursor-pointer hover:scale-[1.02] flex items-center justify-center gap-2"
-          >
-            Build Portfolio
-          </button>
-          <button
-            onClick={() => onNavigate('market')}
-            className="w-full sm:w-auto bg-neutral-900 hover:bg-neutral-850 text-neutral-300 font-semibold px-8 py-3 rounded-xl text-xs border border-neutral-800 transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            Research a Stock
-          </button>
+        <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-3 gap-8 px-6 pt-16 mt-8 border-t border-neutral-900/50">
+          <div className="space-y-1 text-center md:text-left">
+            <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Wealth Planner</h4>
+            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Input your age, goals, and risk profile to instantly generate a diversified, returns-optimized fund distribution.</p>
+          </div>
+          <div className="space-y-1 text-center md:text-left">
+            <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Live Market Intel</h4>
+            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Type any stock or index to trigger live AI agents that search the web, compile news, and write expert briefs.</p>
+          </div>
+          <div className="space-y-1 text-center md:text-left">
+            <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Capital Shield</h4>
+            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Smart duration-based overrides automatically protect short-term investments by switching splits to low-risk debt funds.</p>
+          </div>
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-3 gap-8 px-6 pt-16 mt-8 border-t border-neutral-900/50">
-        <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Wealth Planner</h4>
-          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Input your age, goals, and risk profile to instantly generate a diversified, returns-optimized fund distribution.</p>
+      {/* ─── Section: Metrics Showcase ─── */}
+      <section className="grid grid-cols-2 md:grid-cols-4 gap-6 py-6 border-y border-neutral-900">
+        <div className="text-center space-y-1">
+          <p className="text-3xl font-extrabold text-white tracking-tight">771+</p>
+          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Tracked Mutual Funds</p>
         </div>
-        <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Live Market Intel</h4>
-          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Type any stock or index to trigger live AI agents that search the web, compile news, and write expert briefs.</p>
+        <div className="text-center space-y-1">
+          <p className="text-3xl font-extrabold text-white tracking-tight">10ms</p>
+          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Optimization Speed</p>
         </div>
-        <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Capital Shield</h4>
-          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Smart duration-based overrides automatically protect short-term investments by switching splits to low-risk debt funds.</p>
+        <div className="text-center space-y-1">
+          <p className="text-3xl font-extrabold text-white tracking-tight">100%</p>
+          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Data Grounding</p>
         </div>
-      </div>
+        <div className="text-center space-y-1">
+          <p className="text-3xl font-extrabold text-white tracking-tight">24/7</p>
+          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">AI Market Scanning</p>
+        </div>
+      </section>
+
+      {/* ─── Section: Product Features Detailed Walkthrough ─── */}
+      <section className="space-y-12">
+        <div className="text-center space-y-2 max-w-lg mx-auto">
+          <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">Platform capabilities</h3>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Engineered for Modern Investors</h2>
+          <p className="text-xs text-neutral-500 font-light">Explore the features that power FinSight AI's analytical and advisory terminal.</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Card 1 */}
+          <div className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-8 space-y-4">
+            <div className="bg-indigo-500/10 text-indigo-400 p-2.5 rounded-lg w-fit">
+              <Sliders className="h-5 w-5" />
+            </div>
+            <h3 className="text-base font-semibold text-white">Algorithmic Allocation Engine</h3>
+            <p className="text-xs text-neutral-400 leading-relaxed font-light">
+              Our allocation algorithm performs multi-category mapping across Equity, Hybrid, and Debt assets. It uses risk profile inputs and safety overrides to adjust weight distributions dynamically, shielding you from market volatility.
+            </p>
+          </div>
+
+          {/* Card 2 */}
+          <div className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-8 space-y-4">
+            <div className="bg-indigo-500/10 text-indigo-400 p-2.5 rounded-lg w-fit">
+              <Search className="h-5 w-5" />
+            </div>
+            <h3 className="text-base font-semibold text-white">Real-Time Search Grounding</h3>
+            <p className="text-xs text-neutral-400 leading-relaxed font-light">
+              Unlike static advice models, FinSight utilizes live Google crawlers via Serper API. Two specialized AI agents (Researcher and Analyst) work in sequence to synthesize live market movements into clean, formatted reports.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Section: Simple FAQ Accordion Template ─── */}
+      <section className="space-y-8 max-w-3xl mx-auto w-full">
+        <div className="text-center space-y-2">
+          <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">FAQ</h3>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Frequently Asked Questions</h2>
+        </div>
+
+        <div className="space-y-4">
+          <div className="border border-neutral-900 bg-neutral-950/20 rounded-xl p-5 space-y-2">
+            <h4 className="text-xs font-semibold text-neutral-200">How does the AI predict return percentages?</h4>
+            <p className="text-xs text-neutral-500 font-light leading-relaxed">
+              We train scikit-learn Random Forest regression and classification pipelines on historical mutual fund data, evaluating metrics like Sharpe ratios, Sortino scores, and alpha/beta values to project 3-year performance.
+            </p>
+          </div>
+          <div className="border border-neutral-900 bg-neutral-950/20 rounded-xl p-5 space-y-2">
+            <h4 className="text-xs font-semibold text-neutral-200">Can I trust the information inside the Market Research reports?</h4>
+            <p className="text-xs text-neutral-500 font-light leading-relaxed">
+              Yes. The research agent pulls direct snippets and citations from live Google search results and structures its context strictly from factual reports, preventing typical LLM hallucinations.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Section: Footer ─── */}
+      <footer className="border-t border-neutral-900 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-600">
+        <p>© 2026 FinSight AI. Institutional-grade advisory for retail capital.</p>
+        <div className="flex gap-4">
+          <a href="#" className="hover:text-neutral-400 transition-colors">Privacy</a>
+          <a href="#" className="hover:text-neutral-400 transition-colors">Terms</a>
+          <a href="#" className="hover:text-neutral-400 transition-colors">GitHub</a>
+        </div>
+      </footer>
+
     </div>
   );
 };
