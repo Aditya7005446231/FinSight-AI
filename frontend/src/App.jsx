@@ -48,7 +48,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 antialiased">
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-8 space-y-8">
 
         {/* ─── Header ─── */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-neutral-800">
@@ -546,7 +546,7 @@ const LandingPage = ({ onNavigate }) => {
   }, []);
 
   return (
-    <div className="relative min-h-[70vh] flex flex-col items-center justify-center overflow-hidden py-12 rounded-3xl border border-neutral-900 bg-neutral-950">
+    <div className="relative min-h-[80vh] flex flex-col items-center justify-center overflow-hidden py-12 rounded-3xl border border-neutral-900 bg-neutral-950">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full pointer-events-auto"
@@ -585,7 +585,7 @@ const LandingPage = ({ onNavigate }) => {
         </div>
       </div>
 
-      <div className="relative z-10 w-full max-w-4xl grid md:grid-cols-3 gap-6 px-6 pt-16 mt-8 border-t border-neutral-900/50">
+      <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-3 gap-8 px-6 pt-16 mt-8 border-t border-neutral-900/50">
         <div className="space-y-1">
           <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Wealth Planner</h4>
           <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Input your age, goals, and risk profile to instantly generate a diversified, returns-optimized fund distribution.</p>
