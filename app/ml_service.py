@@ -194,10 +194,23 @@ class ModelStore:
                 continue
                 
             # Filter out funds that don't satisfy the minimum investment criteria
+            # Check if we can split the budget across 2 funds
+            per_fund_budget = allocated_amount / 2
+            
             if investment_mode == "SIP":
-                filtered_by_amt = cat_df[cat_df['min_sip'] <= allocated_amount]
+                filtered_by_amt = cat_df[cat_df['min_sip'] <= per_fund_budget]
             else:
-                filtered_by_amt = cat_df[cat_df['min_lumpsum'] <= allocated_amount]
+                filtered_by_amt = cat_df[cat_df['min_lumpsum'] <= per_fund_budget]
+                
+            # If no fund fits the split budget, try with the full amount (1 fund only)
+            if filtered_by_amt.empty:
+                if investment_mode == "SIP":
+                    filtered_by_amt = cat_df[cat_df['min_sip'] <= allocated_amount]
+                else:
+                    filtered_by_amt = cat_df[cat_df['min_lumpsum'] <= allocated_amount]
+                max_funds = 1
+            else:
+                max_funds = 2
                 
             if not filtered_by_amt.empty:
                 cat_df = filtered_by_amt.copy()
@@ -210,8 +223,8 @@ class ModelStore:
             best_idx = clf_proba.argmax(axis=1)
             cat_df['ai_quality_tag'] = self.label_encoder.classes_[best_idx]
             
-            # Sort by predicted return and pick the top 2 funds to diversify
-            top_funds = cat_df.nlargest(2, 'predicted_return')
+            # Sort by predicted return and pick the top funds
+            top_funds = cat_df.nlargest(max_funds, 'predicted_return')
             num_funds = len(top_funds)
             
             if num_funds > 0:
