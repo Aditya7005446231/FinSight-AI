@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ResponsiveContainer, AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3 } from 'lucide-react';
+import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3, Sliders } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
