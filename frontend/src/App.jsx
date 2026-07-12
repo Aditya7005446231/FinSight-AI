@@ -559,13 +559,13 @@ const LandingPage = ({ onNavigate }) => {
 
         <div className="space-y-3">
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Decisions Backed by ML,<br />
+            Smart Portfolios.<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 via-neutral-400 to-neutral-600">
-              Grounded by AI Agents
+              Real-Time Market Research.
             </span>
           </h2>
           <p className="text-sm text-neutral-500 font-light max-w-lg mx-auto leading-relaxed">
-            FinSight combines Random Forest return predictions with web-crawled multi-agent financial intelligence to compile institutional-grade briefs.
+            Build optimized, risk-aware investment portfolios and run real-time analyst reports on any stock or sector in seconds.
           </p>
         </div>
 
@@ -574,29 +574,29 @@ const LandingPage = ({ onNavigate }) => {
             onClick={() => onNavigate('planner')}
             className="w-full sm:w-auto bg-white hover:bg-neutral-200 text-neutral-950 font-bold px-8 py-3 rounded-xl text-xs shadow-lg transition-all cursor-pointer hover:scale-[1.02] flex items-center justify-center gap-2"
           >
-            Launch Terminal
+            Build Portfolio
           </button>
           <button
             onClick={() => onNavigate('market')}
             className="w-full sm:w-auto bg-neutral-900 hover:bg-neutral-850 text-neutral-300 font-semibold px-8 py-3 rounded-xl text-xs border border-neutral-800 transition-all cursor-pointer flex items-center justify-center gap-2"
           >
-            Run Market Research
+            Research a Stock
           </button>
         </div>
       </div>
 
       <div className="relative z-10 w-full max-w-4xl grid md:grid-cols-3 gap-6 px-6 pt-16 mt-8 border-t border-neutral-900/50">
         <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Predictive ML</h4>
-          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Random Forest models predict 3-year mutual fund returns and quality tags based on historical indicators.</p>
+          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Wealth Planner</h4>
+          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Input your age, goals, and risk profile to instantly generate a diversified, returns-optimized fund distribution.</p>
         </div>
         <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Agentic RAG</h4>
-          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Cooperative Researcher and Analyst agents compile real-time financial briefs with verified web sources.</p>
+          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Live Market Intel</h4>
+          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Type any stock or index to trigger live AI agents that search the web, compile news, and write expert briefs.</p>
         </div>
         <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Risk Overrides</h4>
-          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Dynamic asset allocation rules automatically restrict equity exposure to protect capital for short-term goals.</p>
+          <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Capital Shield</h4>
+          <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Smart duration-based overrides automatically protect short-term investments by switching splits to low-risk debt funds.</p>
         </div>
       </div>
     </div>
