@@ -8,3 +8,4 @@ joblib
 groq
 python-dotenv
 httpx
+yfinance

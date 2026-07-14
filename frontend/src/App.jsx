@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { ResponsiveContainer, AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3, Sliders } from 'lucide-react';
+import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3, Sliders, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Target } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -337,11 +337,34 @@ const md = (text) => {
   }).join('');
 };
 
+/* ─── Helpers ─── */
+const formatMarketCap = (n) => {
+  if (!n) return 'N/A';
+  if (n >= 1e12) return `₹${(n / 1e12).toFixed(2)}T`;
+  if (n >= 1e9) return `₹${(n / 1e9).toFixed(2)}B`;
+  if (n >= 1e7) return `₹${(n / 1e7).toFixed(2)}Cr`;
+  return n.toLocaleString('en-IN');
+};
+
+const StockChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 shadow-xl">
+        <p className="text-[10px] text-neutral-400">{label}</p>
+        <p className="text-sm font-semibold text-indigo-400">₹{payload[0].value.toLocaleString('en-IN')}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 /* ─── Market Research Page ─── */
 const MarketResearcher = () => {
   const [topic, setTopic] = useState('');
   const [report, setReport] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingStock, setLoadingStock] = useState(false);
+  const [stockData, setStockData] = useState(null);
   const [error, setError] = useState(null);
   const [stage, setStage] = useState('');
   const [copied, setCopied] = useState(false);
@@ -349,7 +372,17 @@ const MarketResearcher = () => {
   const run = async (t) => {
     const q = t || topic;
     if (!q || q.trim().length < 3) return;
-    setLoading(true); setError(null); setReport('');
+    setLoading(true); setLoadingStock(true);
+    setError(null); setReport(''); setStockData(null);
+
+    // 1. Fetch stock data (fast, ~0.5s)
+    fetch(`${API_URL}/stock-data?symbol=${encodeURIComponent(q)}`)
+      .then(r => r.ok ? r.json() : r.json().then(e => { throw new Error(e.detail || 'Stock data failed'); }))
+      .then(data => { if (data.status === 'success') setStockData(data); })
+      .catch(() => { /* silently skip — stock data is optional enhancement */ })
+      .finally(() => setLoadingStock(false));
+
+    // 2. Fetch AI report (slow, ~15-30s)
     setStage('Agent 1 → Searching Google via Serper API...');
     const t1 = setTimeout(() => setStage('Agent 1 → Extracting financial data & news...'), 4000);
     const t2 = setTimeout(() => setStage('Agent 2 → Performing analysis & writing report...'), 8000);
@@ -366,16 +399,17 @@ const MarketResearcher = () => {
   };
 
   const chips = ["Reliance Industries", "Tata Motors", "Nifty 50 Index", "HDFC Bank"];
+  const m = stockData?.metrics;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Search */}
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-5">
         <div>
           <h2 className="text-sm font-semibold text-neutral-200 flex items-center gap-2 mb-1">
             <Sparkles className="text-indigo-400 h-4 w-4" /> AI Market Intelligence
           </h2>
-          <p className="text-xs text-neutral-500">Two AI agents crawl the web, extract financial data, and generate an investment analysis report.</p>
+          <p className="text-xs text-neutral-500">Live stock data from Yahoo Finance + AI-powered investment analysis from two autonomous agents.</p>
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); run(); }} className="flex gap-3">
@@ -401,7 +435,84 @@ const MarketResearcher = () => {
         </div>
       </div>
 
-      {/* Loading */}
+      {/* Stock Data Card — loads instantly */}
+      {loadingStock && (
+        <div className="flex items-center justify-center py-10 bg-neutral-900 border border-neutral-800 rounded-2xl">
+          <Loader2 className="animate-spin text-indigo-400 h-5 w-5 mr-2" />
+          <span className="text-neutral-400 text-xs">Fetching live stock data from Yahoo Finance...</span>
+        </div>
+      )}
+
+      {m && (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 space-y-6">
+          {/* Stock Header */}
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-white">{m.name}</h3>
+              <p className="text-xs text-neutral-500 mt-0.5">{m.symbol} · {m.sector || 'Equity'} · {m.industry || ''}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-white">
+                {m.currency === 'INR' ? '₹' : '$'}{m.currentPrice?.toLocaleString('en-IN')}
+              </p>
+              <p className={`text-sm font-semibold flex items-center justify-end gap-1 ${m.priceChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                {m.priceChange >= 0 ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+                {m.priceChange >= 0 ? '+' : ''}{m.priceChange} ({m.priceChangePct}%)
+              </p>
+            </div>
+          </div>
+
+          {/* 6-Month Price Chart */}
+          {stockData.history && stockData.history.length > 0 && (
+            <div>
+              <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold mb-3">6-Month Price History</p>
+              <div style={{ width: '100%', height: 260 }}>
+                <ResponsiveContainer>
+                  <AreaChart data={stockData.history} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="stockGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#818cf8" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: '#525252' }} tickLine={false} axisLine={false}
+                      tickFormatter={(v) => { const d = new Date(v); return d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }); }}
+                      interval={Math.floor(stockData.history.length / 6)} />
+                    <YAxis tick={{ fontSize: 10, fill: '#525252' }} tickLine={false} axisLine={false}
+                      domain={['auto', 'auto']} tickFormatter={(v) => `₹${v}`} />
+                    <Tooltip content={<StockChartTooltip />} />
+                    <Area type="monotone" dataKey="price" stroke="#818cf8" strokeWidth={2}
+                      fill="url(#stockGrad)" dot={false} animationDuration={800} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* Key Metrics Grid */}
+          <div>
+            <p className="text-[10px] text-neutral-500 uppercase tracking-wider font-semibold mb-3">Key Indicators</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: 'Market Cap', value: formatMarketCap(m.marketCap), icon: DollarSign },
+                { label: 'P/E Ratio', value: m.trailingPE ? m.trailingPE.toFixed(2) : 'N/A', icon: BarChart3 },
+                { label: 'Dividend Yield', value: m.dividendYield ? `${(m.dividendYield * 100).toFixed(2)}%` : 'N/A', icon: Coins },
+                { label: '52W Range', value: m.fiftyTwoWeekLow && m.fiftyTwoWeekHigh ? `₹${m.fiftyTwoWeekLow.toLocaleString('en-IN')} – ₹${m.fiftyTwoWeekHigh.toLocaleString('en-IN')}` : 'N/A', icon: Target },
+              ].map(({ label, value, icon: Icon }) => (
+                <div key={label} className="bg-neutral-800/60 border border-neutral-700/50 rounded-xl p-3.5">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Icon className="h-3 w-3 text-indigo-400" />
+                    <span className="text-[10px] text-neutral-500 font-medium">{label}</span>
+                  </div>
+                  <p className="text-sm font-bold text-neutral-200">{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loading (AI Report) */}
       {loading && (
         <div className="flex flex-col items-center justify-center py-16 bg-neutral-900 border border-neutral-800 rounded-2xl space-y-3">
           <Loader2 className="animate-spin text-indigo-400 h-6 w-6" />
