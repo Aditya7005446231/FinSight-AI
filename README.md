@@ -1,145 +1,151 @@
-# FinSight AI 📈
+# FinSight AI
 
-FinSight AI is a personalized, AI-driven mutual fund investment advisor and portfolio planner. It uses machine learning models (Random Forest estimators) to predict mutual fund returns and quality metrics, combines them with dynamic asset allocation algorithms, and outputs custom-tailored investment plans based on user profiles.
+An AI-powered investment advisor that helps users plan mutual fund portfolios. Built this as a full-stack project to explore how machine learning + LLMs can be combined to solve real financial planning problems.
 
----
+**Live Demo:** [finsight-ai.vercel.app](https://finsight-ai.vercel.app) (frontend)
 
-## 🌟 Key Features
+## What it does
 
-* **AI-Powered Recommendations:** Evaluates mutual funds using pre-trained regression models to predict annualized 3-year returns and classifiers to assign quality ratings (`Good`, `Average`, etc.).
-* **Dynamic Asset Allocation:** Maps risk appetites (`Conservative`, `Balanced`, `Growth`, `Aggressive`) into optimal Equity/Debt/Hybrid splits.
-* **Volatility Protection Overrides:**
-  * **Short Horizon (1-2 years):** Overrides allocations to 80% Debt and 20% Hybrid to protect capital against market fluctuations.
-  * **Medium Horizon (3-4 years):** Caps high-risk Equity exposure to a maximum of 40%.
-* **Wealth Projections:** Implements compound growth formulas for **Lumpsum** (single deposits) and **SIP** (monthly compounding recurring investments).
-* **Modern Dashboard Interface:** Built with React, Vite, and Tailwind CSS v4, providing sliders, input forms, and dynamic asset class visualization.
+- Takes your age, risk appetite, investment amount, and duration as input
+- Uses trained ML models (Random Forest) to predict fund returns and rate fund quality
+- Generates a complete portfolio with asset allocation (Equity/Debt/Hybrid split)
+- Projects future wealth using SIP and Lumpsum compound growth formulas
+- Has a **Market Research** section where two AI agents crawl the web and write investment reports on any stock/topic
+- Fetches **live stock data** (price, charts, P/E, market cap) from Yahoo Finance API
 
----
+## Screenshots
 
-## 🛠️ Technology Stack
+> _Add your own screenshots here_
 
-### Backend
-* **FastAPI** — High-performance, asynchronous web framework.
-* **Uvicorn** — Ultra-fast ASGI server.
-* **Pydantic** — Strict type-hinting and data validation.
-* **Scikit-Learn & Joblib** — Machine learning pipeline and model loading.
-* **Pandas & NumPy** — Numerical operations and dataset processing.
+## Tech Stack
 
-### Frontend
-* **React** — Component-driven client UI.
-* **Vite** — Fast, modern frontend build tool.
-* **Tailwind CSS v4** — High-performance utility-first styling with native Vite integration.
-* **Lucide Icons** — Lightweight icon library.
+**Backend:** FastAPI, Python, Scikit-learn, Groq (Llama 3.1), yfinance, Pandas
 
----
+**Frontend:** React, Vite, Tailwind CSS v4, Recharts, Lucide Icons
 
-## 📁 Project Structure
+**Deployment:** Vercel (frontend), Render (backend)
+
+## Project Structure
 
 ```
 FinSight-AI/
 ├── app/
-│   ├── main.py              # FastAPI application root & middleware setup
-│   ├── ml_service.py        # Core advisor logic, ML inference & financial math
-│   ├── schemas.py           # Pydantic request/response payload schemas
+│   ├── main.py                # FastAPI app setup + CORS
+│   ├── ml_service.py          # ML inference, asset allocation, fund matching
+│   ├── agent_service.py       # LLM analyst (Groq API)
+│   ├── crew_service.py        # Multi-agent pipeline (researcher + analyst)
+│   ├── schemas.py             # Pydantic models for plan/recommend
+│   ├── schemas_agent.py       # Pydantic models for agents
 │   └── routers/
-│       ├── recommend.py     # Endpoint for matching individual funds (/funds)
-│       └── plan.py          # Endpoint for generating full portfolios (/plan)
+│       ├── plan.py            # POST /plan - generate portfolio
+│       ├── recommend.py       # POST /funds - match funds
+│       ├── analyst.py         # POST /analyst - AI analysis
+│       ├── researcher.py      # POST /researcher - Q&A
+│       └── market_report.py   # POST /market-report + GET /stock-data
 ├── data/
-│   └── fastapi_funds_dataset.csv  # Mutual funds database
+│   └── fastapi_funds_dataset.csv
 ├── models/
-│   ├── returns_3yr_predictor.joblib  # Return prediction regressor
-│   ├── fund_classifier.joblib        # Quality rating classifier
-│   └── fund_label_encoder.joblib     # Label encoder classes
-├── frontend/                # Vite + React single-page application
+│   ├── returns_3yr_predictor.joblib
+│   ├── fund_classifier.joblib
+│   └── fund_label_encoder.joblib
+├── frontend/
 │   ├── src/
-│   │   ├── App.jsx          # Dashboard layout & request connections
-│   │   ├── index.css        # Tailwind v4 styles entry
+│   │   ├── App.jsx
+│   │   ├── index.css
 │   │   └── main.jsx
-│   └── vite.config.js       # Vite configuration with @tailwindcss/vite
-├── backend_info.txt         # Explanations of core calculations and structures
-├── requirements.txt         # Python dependencies
-└── README.md                # Project documentation
+│   └── vite.config.js
+├── requirements.txt
+└── vercel.json
 ```
 
----
+## How to run locally
 
-## 🚀 Getting Started
+You need Python and Node.js installed.
 
-### 1. Run the Backend Server
-Make sure you have Python installed, then run the following commands in the root directory:
+### Backend
 
 ```bash
-# Install backend dependencies
+# install dependencies
 pip install -r requirements.txt
 
-# Start the FastAPI server
+# create a .env file with your API keys
+# GROQ_API_KEY=your_key
+# SERPER_API_KEY=your_key
+
+# start the server
 python -m uvicorn app.main:app --reload
 ```
-The API documentation will be interactive and available at: **`http://127.0.0.1:8000/docs`**
 
-### 2. Run the React Frontend
-Open a separate terminal window, navigate to the `frontend` directory, and run:
+Server runs at `http://127.0.0.1:8000`. API docs at `http://127.0.0.1:8000/docs`.
+
+### Frontend
 
 ```bash
-# Navigate to frontend folder
 cd frontend
-
-# Install package dependencies
 npm install
-
-# Start the local development server
 npm run dev
 ```
-Open **`http://localhost:5173`** in your browser to interact with the dashboard.
 
----
+Opens at `http://localhost:5173`.
 
-## 🔌 API Documentation
+## API Endpoints
 
-### `POST /plan`
-Generates a complete investment distribution and future wealth projections.
+| Method | Endpoint | What it does |
+|--------|----------|--------------|
+| POST | `/plan` | Generate full investment portfolio |
+| POST | `/funds` | Get fund recommendations |
+| POST | `/analyst` | AI-powered analysis of any data |
+| POST | `/researcher` | Ask financial questions |
+| POST | `/market-report` | Multi-agent market research report |
+| GET | `/stock-data?symbol=` | Live stock price + chart data from Yahoo Finance |
 
-* **Request Body:**
+### Example - Generate a plan
+
 ```json
+POST /plan
 {
-  "age": 30,
-  "financial_goal": "Retirement",
+  "age": 25,
+  "financial_goal": "Wealth Creation",
   "investment_mode": "SIP",
   "amount": 5000,
-  "duration_years": 7,
+  "duration_years": 5,
   "risk_profile": "Growth"
 }
 ```
 
-* **Response Body:**
-```json
-{
-  "status": "success",
-  "risk_profile": "Growth",
-  "investment_mode": "SIP",
-  "total_amount": 5000,
-  "duration_years": 7,
-  "projected_value": 3844850.93,
-  "projected_gain": 3424850.93,
-  "asset_allocation": [
-    { "category": "Debt", "percentage": 10, "allocated_amount": 500 },
-    { "category": "Hybrid", "percentage": 20, "allocated_amount": 1000 },
-    { "category": "Equity", "percentage": 70, "allocated_amount": 3500 }
-  ],
-  "fund_distribution": [
-    {
-      "scheme_name": "Quant Small Cap Fund",
-      "category": "Equity",
-      "sub_category": "Small Cap Mutual Funds",
-      "allocation_percentage": 35,
-      "allocated_amount": 1750,
-      "predicted_return": 59.6,
-      "ai_quality_tag": "Good",
-      "latest_1yr_return": 5.4,
-      "fund_size_cr": 3301
-    }
-    // ...other recommended funds
-  ],
-  "summary_message": "Based on your profile (Age 30, Risk: Growth)... Expected portfolio return is 50.6%..."
-}
+Returns asset allocation, fund recommendations with predicted returns, and projected portfolio value.
+
+## How the ML model works
+
+- Trained a Random Forest regressor on mutual fund data to predict 3-year annualized returns
+- Trained a classifier to tag funds as "Good", "Average", etc.
+- Asset allocation is based on risk profile with safety overrides for short durations (1-2 years caps equity exposure)
+- SIP projections use monthly compounding formula, Lumpsum uses standard compound interest
+
+## How the AI agents work
+
+The market research feature uses two agents running sequentially:
+
+1. **Researcher Agent** - Searches Google using Serper API, collects recent news and financial data
+2. **Analyst Agent** - Takes the research output and writes a structured investment report using Llama 3.1 (via Groq)
+
+The stock data endpoint separately pulls live prices and 6-month history from Yahoo Finance (no API key needed).
+
+## Environment Variables
+
 ```
+GROQ_API_KEY=       # for LLM inference (free tier works)
+SERPER_API_KEY=     # for Google search in market research
+```
+
+## Future Improvements
+
+- User authentication and saved portfolios
+- Database integration (PostgreSQL)
+- Portfolio backtesting with historical data
+- Stock vs Index comparison
+- Real-time sector heatmap
+
+---
+
+Built by **Aditya Rai**
