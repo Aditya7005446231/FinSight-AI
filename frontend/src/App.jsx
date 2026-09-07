@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ResponsiveContainer, AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3, Sliders, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Target } from 'lucide-react';
+import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3, Sliders, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Target, Shield } from 'lucide-react';
+import RiskProfiler from './components/RiskProfiler';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -57,17 +58,17 @@ function App() {
             <p className="text-xs text-neutral-500 mt-0.5">AI-Powered Portfolio Planner & Market Intelligence</p>
           </div>
           <nav className="flex bg-neutral-900 border border-neutral-800 rounded-lg p-0.5">
-            {['planner', 'market'].map((page) => (
+            {[{ key: 'planner', label: 'Portfolio Planner' }, { key: 'risk', label: 'Risk Profiler' }, { key: 'market', label: 'Market Research' }].map(({ key, label }) => (
               <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
+                key={key}
+                onClick={() => setCurrentPage(key)}
                 className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                  currentPage === page
+                  currentPage === key
                     ? 'bg-neutral-800 text-white shadow-sm'
                     : 'text-neutral-500 hover:text-neutral-300'
                 }`}
               >
-                {page === 'planner' ? 'Portfolio Planner' : 'Market Research'}
+                {label}
               </button>
             ))}
           </nav>
@@ -76,6 +77,8 @@ function App() {
         {/* ─── Page Content ─── */}
         {currentPage === 'landing' ? (
           <LandingPage onNavigate={(page) => setCurrentPage(page)} />
+        ) : currentPage === 'risk' ? (
+          <RiskProfiler />
         ) : currentPage === 'planner' ? (
           <div className="grid lg:grid-cols-12 gap-10">
 
@@ -691,6 +694,12 @@ const LandingPage = ({ onNavigate }) => {
               Build Portfolio
             </button>
             <button
+              onClick={() => onNavigate('risk')}
+              className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-8 py-3 rounded-xl text-xs shadow-lg shadow-indigo-500/20 transition-all cursor-pointer hover:scale-[1.02] flex items-center justify-center gap-2"
+            >
+              <Shield className="h-3.5 w-3.5" /> Find My Risk Profile
+            </button>
+            <button
               onClick={() => onNavigate('market')}
               className="w-full sm:w-auto bg-neutral-900 hover:bg-neutral-850 text-neutral-300 font-semibold px-8 py-3 rounded-xl text-xs border border-neutral-800 transition-all cursor-pointer flex items-center justify-center gap-2"
             >
@@ -699,10 +708,14 @@ const LandingPage = ({ onNavigate }) => {
           </div>
         </div>
 
-        <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-3 gap-8 px-6 pt-16 mt-8 border-t border-neutral-900/50">
+        <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-4 gap-8 px-6 pt-16 mt-8 border-t border-neutral-900/50">
           <div className="space-y-1 text-center md:text-left">
             <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Wealth Planner</h4>
             <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Input your age, goals, and risk profile to instantly generate a diversified, returns-optimized fund distribution.</p>
+          </div>
+          <div className="space-y-1 text-center md:text-left">
+            <h4 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Risk Profiler</h4>
+            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Answer a quick questionnaire and our XGBoost ML model predicts your ideal risk profile with confidence scores.</p>
           </div>
           <div className="space-y-1 text-center md:text-left">
             <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Live Market Intel</h4>

@@ -1,0 +1,30 @@
+{
+  "random_state": 42,
+  "test_size": 0.2,
+  "regression_target": "returns_3yr",
+  "regression_features": [
+    "sharpe",
+    "alpha",
+    "beta",
+    "sortino",
+    "fund_size_cr",
+    "min_sip",
+    "min_lumpsum"
+  ],
+  "classification_features": [
+    "sharpe",
+    "alpha",
+    "beta",
+    "sortino",
+    "fund_size_cr",
+    "expense_ratio",
+    "returns_1yr",
+    "risk_level",
+    "fund_age_yr"
+  ],
+  "quality_target_rule": "rating >= 4: Good; rating <= 1: Risky; otherwise: Average",
+  "regression_mae": 3.5277,
+  "regression_rmse": 5.8965,
+  "regression_r2": 0.7272,
+  "classification_accuracy": 0.6387
+}

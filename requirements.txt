@@ -8,4 +8,5 @@ joblib
 groq
 python-dotenv
 httpx
+xgboost
 yfinance

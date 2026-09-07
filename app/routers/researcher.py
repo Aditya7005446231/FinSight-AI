@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas_agent import ResearcherRequest, ResearcherResponse
 from app.agent_service import agent_service
-from app.ml_service import model_store
+from app.services import model_store
 
 router = APIRouter()
 

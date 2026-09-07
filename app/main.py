@@ -24,13 +24,14 @@ app.add_middleware(
 def read_root():
     return {"message": "Welcome to FinSight AI API"}
 
-from app.routers import recommend, plan, analyst, researcher, market_report
+from app.routers import recommend, plan, analyst, researcher, market_report, risk_recommend
 
 app.include_router(recommend.router)
 app.include_router(plan.router)
 app.include_router(analyst.router)
 app.include_router(researcher.router)
 app.include_router(market_report.router)
+app.include_router(risk_recommend.router)
 
 
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas import InvestmentRequest, InvestmentResponse, FundRecommendation
-from app.ml_service import model_store
+from app.services import model_store
 
 router = APIRouter()
 
