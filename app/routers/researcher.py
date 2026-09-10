@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas_agent import ResearcherRequest, ResearcherResponse
 from app.agent_service import agent_service
-from app.services import model_store
+from app.services import search_funds
 
 router = APIRouter()
 
@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post("/researcher", response_model=ResearcherResponse)
 def research_query(request: ResearcherRequest):
     try:
-        matched_df = model_store.search_funds(request.query, top_n=10)
+        matched_df = search_funds(request.query, top_n=10)
 
         if matched_df.empty:
             db_context = "No matching records found in the database."

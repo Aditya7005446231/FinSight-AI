@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { ResponsiveContainer, AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Award, AlertCircle, Loader2, Coins, Search, BookOpen, Copy, Sparkles, BarChart3, Sliders, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Target, Shield } from 'lucide-react';
 import RiskProfiler from './components/RiskProfiler';
+import LandingPage from './components/LandingPage';
+import { AdaptiveSlider } from './components/AdaptiveSlider';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
@@ -93,9 +95,12 @@ function App() {
                     <span className="text-neutral-400 font-medium">Age</span>
                     <span className="text-white font-semibold">{formData.age} yrs</span>
                   </div>
-                  <input type="range" min="18" max="75" value={formData.age}
+                  <AdaptiveSlider
+                    min={18}
+                    max={75}
+                    value={formData.age}
                     onChange={(e) => setFormData({ ...formData, age: +e.target.value })}
-                    className="w-full h-1.5 rounded-full bg-neutral-800 accent-indigo-400 cursor-pointer" />
+                  />
                 </div>
 
                 {/* Goal */}
@@ -147,9 +152,12 @@ function App() {
                     <span className="text-neutral-400 font-medium">Duration</span>
                     <span className="text-white font-semibold">{formData.duration_years} yrs</span>
                   </div>
-                  <input type="range" min="1" max="15" value={formData.duration_years}
+                  <AdaptiveSlider
+                    min={1}
+                    max={15}
+                    value={formData.duration_years}
                     onChange={(e) => setFormData({ ...formData, duration_years: +e.target.value })}
-                    className="w-full h-1.5 rounded-full bg-neutral-800 accent-indigo-400 cursor-pointer" />
+                  />
                 </div>
 
                 {/* Risk */}
@@ -550,272 +558,6 @@ const MarketResearcher = () => {
   );
 };
 
-/* ─── Landing Page Component ─── */
-const LandingPage = ({ onNavigate }) => {
-  const canvasRef = useRef(null);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId;
-    let width = (canvas.width = canvas.offsetWidth);
-    let height = (canvas.height = canvas.offsetHeight);
-
-    const particles = [];
-    const symbols = ['₹', '$', '€', '£', '%', '📈', '+', '📊'];
-    const maxParticles = 60;
-
-    class Particle {
-      constructor() {
-        this.reset();
-        this.y = Math.random() * height;
-      }
-
-      reset() {
-        this.x = Math.random() * width;
-        this.y = height + Math.random() * 20 + 10;
-        this.size = Math.random() * 12 + 10;
-        this.symbol = symbols[Math.floor(Math.random() * symbols.length)];
-        this.speedY = -(Math.random() * 0.8 + 0.3);
-        this.speedX = Math.random() * 0.4 - 0.2;
-        this.alpha = Math.random() * 0.2 + 0.05;
-      }
-
-      update() {
-        this.y += this.speedY;
-        this.x += this.speedX;
-
-        if (this.y < height * 0.4) {
-          this.alpha -= 0.003;
-        }
-
-        if (this.y < -20 || this.alpha <= 0 || this.x < -20 || this.x > width + 20) {
-          this.reset();
-        }
-      }
-
-      draw() {
-        ctx.fillStyle = `rgba(163, 163, 163, ${this.alpha})`;
-        ctx.font = `${this.size}px 'Plus Jakarta Sans', sans-serif`;
-        ctx.fillText(this.symbol, this.x, this.y);
-      }
-    }
-
-    for (let i = 0; i < maxParticles; i++) {
-      particles.push(new Particle());
-    }
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
-    };
-    window.addEventListener('resize', handleResize);
-
-    let mouse = { x: null, y: null };
-    const handleMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
-    };
-    const handleMouseLeave = () => {
-      mouse.x = null;
-      mouse.y = null;
-    };
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
-
-    const animate = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      particles.forEach((p) => {
-        if (mouse.x !== null && mouse.y !== null) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
-            const force = (100 - dist) / 100;
-            p.x += (dx / dist) * force * 3;
-            p.y += (dy / dist) * force * 1.5;
-          }
-        }
-        p.update();
-        p.draw();
-      });
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
-  return (
-    <div className="space-y-20 pb-16">
-      
-      {/* ─── Hero Canvas Banner ─── */}
-      <div className="relative min-h-[80vh] flex flex-col items-center justify-center overflow-hidden py-12 rounded-3xl border border-neutral-900 bg-neutral-950">
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full pointer-events-auto"
-        />
-
-        <div className="relative z-10 text-center max-w-2xl px-6 space-y-8 pointer-events-none">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-indigo-500/30 bg-indigo-500/5 text-indigo-400 text-[10px] font-semibold tracking-wider uppercase animate-pulse">
-            <Sparkles className="h-3.5 w-3.5" /> Engine v1.0 Release
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-              Smart Portfolios.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 via-neutral-400 to-neutral-600">
-                Real-Time Market Research.
-              </span>
-            </h2>
-            <p className="text-sm text-neutral-500 font-light max-w-lg mx-auto leading-relaxed">
-              Build optimized, risk-aware investment portfolios and run real-time analyst reports on any stock or sector in seconds.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 pointer-events-auto">
-            <button
-              onClick={() => onNavigate('planner')}
-              className="w-full sm:w-auto bg-white hover:bg-neutral-200 text-neutral-950 font-bold px-8 py-3 rounded-xl text-xs shadow-lg transition-all cursor-pointer hover:scale-[1.02] flex items-center justify-center gap-2"
-            >
-              Build Portfolio
-            </button>
-            <button
-              onClick={() => onNavigate('risk')}
-              className="w-full sm:w-auto bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-8 py-3 rounded-xl text-xs shadow-lg shadow-indigo-500/20 transition-all cursor-pointer hover:scale-[1.02] flex items-center justify-center gap-2"
-            >
-              <Shield className="h-3.5 w-3.5" /> Find My Risk Profile
-            </button>
-            <button
-              onClick={() => onNavigate('market')}
-              className="w-full sm:w-auto bg-neutral-900 hover:bg-neutral-850 text-neutral-300 font-semibold px-8 py-3 rounded-xl text-xs border border-neutral-800 transition-all cursor-pointer flex items-center justify-center gap-2"
-            >
-              Research a Stock
-            </button>
-          </div>
-        </div>
-
-        <div className="relative z-10 w-full max-w-5xl grid md:grid-cols-4 gap-8 px-6 pt-16 mt-8 border-t border-neutral-900/50">
-          <div className="space-y-1 text-center md:text-left">
-            <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Wealth Planner</h4>
-            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Input your age, goals, and risk profile to instantly generate a diversified, returns-optimized fund distribution.</p>
-          </div>
-          <div className="space-y-1 text-center md:text-left">
-            <h4 className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Risk Profiler</h4>
-            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Answer a quick questionnaire and our XGBoost ML model predicts your ideal risk profile with confidence scores.</p>
-          </div>
-          <div className="space-y-1 text-center md:text-left">
-            <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Live Market Intel</h4>
-            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Type any stock or index to trigger live AI agents that search the web, compile news, and write expert briefs.</p>
-          </div>
-          <div className="space-y-1 text-center md:text-left">
-            <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Capital Shield</h4>
-            <p className="text-[11px] text-neutral-600 leading-relaxed font-light font-sans">Smart duration-based overrides automatically protect short-term investments by switching splits to low-risk debt funds.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── Section: Metrics Showcase ─── */}
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-6 py-6 border-y border-neutral-900">
-        <div className="text-center space-y-1">
-          <p className="text-3xl font-extrabold text-white tracking-tight">771+</p>
-          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Tracked Mutual Funds</p>
-        </div>
-        <div className="text-center space-y-1">
-          <p className="text-3xl font-extrabold text-white tracking-tight">10ms</p>
-          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Optimization Speed</p>
-        </div>
-        <div className="text-center space-y-1">
-          <p className="text-3xl font-extrabold text-white tracking-tight">100%</p>
-          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">Data Grounding</p>
-        </div>
-        <div className="text-center space-y-1">
-          <p className="text-3xl font-extrabold text-white tracking-tight">24/7</p>
-          <p className="text-[10px] text-neutral-500 font-semibold uppercase tracking-wider">AI Market Scanning</p>
-        </div>
-      </section>
-
-      {/* ─── Section: Product Features Detailed Walkthrough ─── */}
-      <section className="space-y-12">
-        <div className="text-center space-y-2 max-w-lg mx-auto">
-          <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">Platform capabilities</h3>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Engineered for Modern Investors</h2>
-          <p className="text-xs text-neutral-500 font-light">Explore the features that power FinSight AI's analytical and advisory terminal.</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Card 1 */}
-          <div className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-8 space-y-4">
-            <div className="bg-indigo-500/10 text-indigo-400 p-2.5 rounded-lg w-fit">
-              <Sliders className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-white">Algorithmic Allocation Engine</h3>
-            <p className="text-xs text-neutral-400 leading-relaxed font-light">
-              Our allocation algorithm performs multi-category mapping across Equity, Hybrid, and Debt assets. It uses risk profile inputs and safety overrides to adjust weight distributions dynamically, shielding you from market volatility.
-            </p>
-          </div>
-
-          {/* Card 2 */}
-          <div className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-8 space-y-4">
-            <div className="bg-indigo-500/10 text-indigo-400 p-2.5 rounded-lg w-fit">
-              <Search className="h-5 w-5" />
-            </div>
-            <h3 className="text-base font-semibold text-white">Real-Time Search Grounding</h3>
-            <p className="text-xs text-neutral-400 leading-relaxed font-light">
-              Unlike static advice models, FinSight utilizes live Google crawlers via Serper API. Two specialized AI agents (Researcher and Analyst) work in sequence to synthesize live market movements into clean, formatted reports.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Section: Simple FAQ Accordion Template ─── */}
-      <section className="space-y-8 max-w-3xl mx-auto w-full">
-        <div className="text-center space-y-2">
-          <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-widest">FAQ</h3>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Frequently Asked Questions</h2>
-        </div>
-
-        <div className="space-y-4">
-          <div className="border border-neutral-900 bg-neutral-950/20 rounded-xl p-5 space-y-2">
-            <h4 className="text-xs font-semibold text-neutral-200">How does the AI predict return percentages?</h4>
-            <p className="text-xs text-neutral-500 font-light leading-relaxed">
-              We train scikit-learn Random Forest regression and classification pipelines on historical mutual fund data, evaluating metrics like Sharpe ratios, Sortino scores, and alpha/beta values to project 3-year performance.
-            </p>
-          </div>
-          <div className="border border-neutral-900 bg-neutral-950/20 rounded-xl p-5 space-y-2">
-            <h4 className="text-xs font-semibold text-neutral-200">Can I trust the information inside the Market Research reports?</h4>
-            <p className="text-xs text-neutral-500 font-light leading-relaxed">
-              Yes. The research agent pulls direct snippets and citations from live Google search results and structures its context strictly from factual reports, preventing typical LLM hallucinations.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Section: Footer ─── */}
-      <footer className="border-t border-neutral-900 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-neutral-600">
-        <p>© 2026 FinSight AI. Institutional-grade advisory for retail capital.</p>
-        <div className="flex gap-4">
-          <a href="#" className="hover:text-neutral-400 transition-colors">Privacy</a>
-          <a href="#" className="hover:text-neutral-400 transition-colors">Terms</a>
-          <a href="#" className="hover:text-neutral-400 transition-colors">GitHub</a>
-        </div>
-      </footer>
-
-    </div>
-  );
-};
 
 export default App;

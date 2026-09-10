@@ -1,63 +1,66 @@
+"""
+POST /funds — legacy recommendation endpoint mapped to unified risk service.
+"""
+
 from fastapi import APIRouter, HTTPException
 from app.schemas import InvestmentRequest, InvestmentResponse, FundRecommendation
-from app.services import model_store
+from app.services import recommend_funds as get_recommendations
 
 router = APIRouter()
+
+RISK_PROFILE_MAP = {
+    "Low": "Conservative",
+    "Moderate": "Moderate",
+    "High": "Aggressive",
+    "Very High": "Aggressive",
+}
 
 
 @router.post("/funds", response_model=InvestmentResponse)
 def recommend_funds(request: InvestmentRequest):
     """
-    Smart fund recommendation based on:
-    - investment_mode: SIP ya Lumpsum
-    - amount: kitna invest karna hai
-    - duration_years: kitne saal ke liye
-    - risk_tolerance: Low / Moderate / High / Very High
+    Fund recommendation endpoint mapped to single unified ML risk dataset (funds_clean.csv).
     """
-    if not model_store._loaded:
-        raise HTTPException(503, "Models are still loading, please try again in a moment.")
+    mapped_profile = RISK_PROFILE_MAP.get(request.risk_tolerance, "Moderate")
 
-    result_df = model_store.recommend_funds(
-        investment_mode=request.investment_mode,
-        amount         =request.amount,
-        duration_years =request.duration_years,
-        risk_tolerance =request.risk_tolerance,
-        top_n          =request.top_n
-    )
-
-    if result_df.empty:
+    try:
+        raw_funds = get_recommendations(
+            risk_profile=mapped_profile,
+            top_n=request.top_n,
+        )
+    except Exception as err:
         raise HTTPException(
-            404,
-            f"Koi fund nahi mila — "
-            f"risk: {request.risk_tolerance}, "
-            f"duration: {request.duration_years} yr, "
-            f"amount: ₹{request.amount}"
+            status_code=500,
+            detail=f"Error fetching fund recommendations: {str(err)}",
+        )
+
+    if not raw_funds:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No funds found for risk tolerance: {request.risk_tolerance}",
         )
 
     funds = [
         FundRecommendation(
-            scheme_name     = row['scheme_name'],
-            category        = str(row['category']),
-            sub_category    = str(row['sub_category']),
-            risk_level      = int(row['risk_level'] or 0),
-            ai_quality_tag  = str(row['ai_quality_tag']),
-            predicted_return= float(row['predicted_return']),
-            latest_1yr_return= float(row['returns_1yr'] or 0),
-            fund_size_cr    = float(row['fund_size_cr'] or 0)
+            scheme_name=row["scheme_name"],
+            category=str(row["category"]),
+            sub_category=str(row.get("sub_category", "")),
+            risk_level=3,
+            ai_quality_tag="Good",
+            predicted_return=float(row.get("returns_3yr", 12.0) or 12.0),
+            latest_1yr_return=float(row.get("returns_1yr", 0) or 0),
+            fund_size_cr=float(row.get("expense_ratio", 0) or 0),
         )
-        for _, row in result_df.iterrows()
+        for row in raw_funds
     ]
 
-    # smart message generate karo
     message = (
-        f"₹{request.amount} {request.investment_mode} ke liye "
-        f"{request.duration_years} saal mein "
-        f"{request.risk_tolerance} risk ke saath "
-        f"top {len(funds)} funds"
+        f"Top {len(funds)} funds recommended for ₹{request.amount} {request.investment_mode} "
+        f"({request.duration_years} yrs, {request.risk_tolerance} risk)"
     )
 
     return InvestmentResponse(
-        status           ="success",
-        message          =message,
-        recommended_funds=funds
+        status="success",
+        message=message,
+        recommended_funds=funds,
     )

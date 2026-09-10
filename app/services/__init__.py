@@ -1,19 +1,22 @@
 """
 FinSight AI Services Package.
 
-Exposes unified interfaces for Fund Analysis & Prediction and Risk Profiling.
+Unified single-engine interface for Risk Profiling, Mutual Fund Recommendations,
+Search, and Wealth Portfolio Planning.
 """
 
-from app.services.fund_service import model_store
 from app.services.risk_service import (
     predict_risk_profile,
     recommend_funds,
     lookup_fund_performance,
+    generate_investment_plan,
+    search_funds,
 )
 
 __all__ = [
-    "model_store",
     "predict_risk_profile",
     "recommend_funds",
     "lookup_fund_performance",
+    "generate_investment_plan",
+    "search_funds",
 ]

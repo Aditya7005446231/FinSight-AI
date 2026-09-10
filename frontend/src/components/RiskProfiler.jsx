@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AdaptiveSlider } from './AdaptiveSlider';
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
   CartesianGrid, Legend,
@@ -151,9 +152,12 @@ const RiskProfiler = () => {
                 </span>
                 <span className="text-white font-semibold">{form.age} yrs</span>
               </div>
-              <input type="range" min="18" max="75" value={form.age}
+              <AdaptiveSlider
+                min={18}
+                max={75}
+                value={form.age}
                 onChange={(e) => set('age', +e.target.value)}
-                className="w-full h-1.5 rounded-full bg-neutral-800 accent-indigo-400 cursor-pointer" />
+              />
             </div>
 
             {/* Monthly Income */}
@@ -175,9 +179,12 @@ const RiskProfiler = () => {
                 <span className="text-neutral-400 font-medium">Dependents</span>
                 <span className="text-white font-semibold">{form.dependents}</span>
               </div>
-              <input type="range" min="0" max="10" value={form.dependents}
+              <AdaptiveSlider
+                min={0}
+                max={10}
+                value={form.dependents}
                 onChange={(e) => set('dependents', +e.target.value)}
-                className="w-full h-1.5 rounded-full bg-neutral-800 accent-indigo-400 cursor-pointer" />
+              />
             </div>
 
             {/* Horizon */}
@@ -188,9 +195,12 @@ const RiskProfiler = () => {
                 </span>
                 <span className="text-white font-semibold">{form.horizon_years} yrs</span>
               </div>
-              <input type="range" min="1" max="30" value={form.horizon_years}
+              <AdaptiveSlider
+                min={1}
+                max={30}
+                value={form.horizon_years}
                 onChange={(e) => set('horizon_years', +e.target.value)}
-                className="w-full h-1.5 rounded-full bg-neutral-800 accent-indigo-400 cursor-pointer" />
+              />
             </div>
 
             {/* Monthly Investable */}
